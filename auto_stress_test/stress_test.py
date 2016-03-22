@@ -6,6 +6,7 @@ import re
 import sys
 import os
 import platform
+import time
 from subprocess import Popen, PIPE, call
 from time import sleep
 import getopt
@@ -124,13 +125,13 @@ def get_apps_info(app_info_file):
 
 def homekey_exit_app():
     print "exit home key"
-    cmd_line1 = "adb -s " + device_id + " shell input keyevent 4"#back key
+    cmd_line1 = "adb -s " + device_id + " shell input keyevent 3"#home key
     os.popen(cmd_line1)
     sleep(1)
 
 def double_homekey_exit_app():
     print "exit home key"
-    cmd_line1 = "adb -s " + device_id + " shell input keyevent 4"#back key
+    cmd_line1 = "adb -s " + device_id + " shell input keyevent 3"#home key
     os.popen(cmd_line1)
     os.popen(cmd_line1)
     sleep(1)
@@ -232,7 +233,7 @@ def Usage():
     print 'stress_tesst.py usage:'
     print '-h,--help: print help message.'
     print '-v, --version: print script version'
-    print '-i, --input: (default:stress_app_info.txt) input an input txt file, the app information from file'
+    print '-i, --input: (default:stress_app_info.txt) input an input txt file, the app information from file; if -i /sdcard/Apps.txt will auto pull from device'
     print '-o, --output: (default:stress_performance_auto_test_report.html) one html file report the stress test detail information'
     print '--high: like --high="9 2000" (default:9 2000) mean high type app will launch 9 times and the monkey will run 2000 times '
     print '--mid: like --mid="9 2000" (default:5 1000) mean mid type app will launch 9 times and the monkey will run 2000 times '
@@ -243,9 +244,10 @@ def Usage():
 def Version():
     print 'stress_tesst.py 1.0.0.0.1'
     
-def OutPut(args):
-    print 'Hello, %s'%args
 ####################usage############################
+####################4, monitor phone status###########################
+
+####################4, monitor phone status###########################
 
 if __name__ == "__main__":
     high_type_run_count = 9
@@ -257,6 +259,9 @@ if __name__ == "__main__":
     complete_loop_time=3
     app_info_file="stress_app_info.txt"
     reportFilename="stress_performance_auto_test_report.html"
+    
+    print "---------device list----------"
+    device_id = select_device()
     
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hvi:o:', ['input=','output=', 'high=', 'mid=', 'low=', 'loop='])
@@ -273,7 +278,11 @@ if __name__ == "__main__":
             Version()
             sys.exit(0)
         elif opt in ('-i', '--input'):
-            app_info_file=arg
+            if "/sdcard/Apps.txt" == arg:
+                result = os.popen("adb -s " + device_id + " pull /sdcard/Apps.txt .").readlines()
+                app_info_file="Apps.txt"
+            else:
+                app_info_file=arg
             print app_info_file
         elif opt in ('-o', '--output'):
             reportFilename=arg
@@ -318,8 +327,6 @@ if __name__ == "__main__":
             print 'unhandled option'
             sys.exit(3)
     
-    print "---------device list----------"
-    device_id = select_device()
     htmlfile = open(reportFilename,'w')
     initHtml(htmlfile)
     
@@ -329,14 +336,22 @@ if __name__ == "__main__":
     print "It expected to "+str(app_num)+" minutes to complete....."
     x = input("Press 1 key to continue:")
     ###########run those app############
+    start_time = time.time()
     for j in range(complete_loop_time):
         if j == (complete_loop_time-1):
             test_stress(app_info, True)
         else:
             test_stress(app_info, False)
     
+    end_time = time.time()
     print "------------------------------"
-    htmlfile.write(" </br></br></br>")
+    htmlfile.write(" </br></br></br> total run time = "+str(end_time-start_time)+" sec")
     print app_info
     write_report(app_info)
+    htmlfile.write("</body> </html>")
     htmlfile.close()
+    
+    #flish the monitor phone STATUS
+    os.system("echo 0 >stress_test_monitor_flag")
+        
+        

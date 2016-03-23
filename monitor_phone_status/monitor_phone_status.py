@@ -88,8 +88,13 @@ def check_phone_status(result_file_name, actionid):
     Action(actionid)
     os.system("adb -s "+ device_id +" shell date > "+result_file_name)
     
+    os.system("adb -s "+ device_id +" shell getprop ro.build.type >> "+result_file_name)
+    
     os.system("echo adb -s "+ device_id +" shell getprop ro.tct.sys.ver : >> "+result_file_name)
     os.system("adb -s "+ device_id +" shell getprop ro.tct.sys.ver >> "+result_file_name)
+    
+    os.system("echo adb -s "+ device_id +" shell cat /sys/module/lowmemorykiller/parameters/adj : >> "+result_file_name)
+    os.system("adb -s "+ device_id +" shell cat /sys/module/lowmemorykiller/parameters/adj >> "+result_file_name)
     
     os.system("echo adb -s "+ device_id +" shell cat /sys/module/lowmemorykiller/parameters/minfree : >> "+result_file_name)
     os.system("adb -s "+ device_id +" shell cat /sys/module/lowmemorykiller/parameters/minfree >> "+result_file_name)
@@ -112,8 +117,17 @@ def check_phone_status(result_file_name, actionid):
     os.system("echo adb -s "+ device_id +" shell cat /sys/module/process_reclaim/parameters/enable_process_reclaim : >> "+result_file_name)
     os.system("adb -s "+ device_id +" shell cat /sys/module/process_reclaim/parameters/enable_process_reclaim >> "+result_file_name)
     
+    os.system("echo adb -s "+ device_id +" shell cat /proc/sys/vm/min_free_kbytes : >> "+result_file_name)
+    os.system("adb -s "+ device_id +" shell cat /proc/sys/vm/min_free_kbytes >> "+result_file_name)
+    
+    os.system("echo adb -s "+ device_id +" shell cat /proc/sys/vm/user_reserve_kbytes : >> "+result_file_name)
+    os.system("adb -s "+ device_id +" shell cat /proc/sys/vm/user_reserve_kbytes >> "+result_file_name)
+    
     os.system("echo adb -s "+ device_id +" shell dumpsys battery : >> "+result_file_name)
     os.system("adb -s "+ device_id +" shell dumpsys battery >> "+result_file_name)
+    
+    os.system("echo adb -s "+ device_id +" shell cat /proc/zoneinfo : >> "+result_file_name)
+    os.system("adb -s "+ device_id +" shell cat /proc/zoneinfo >> "+result_file_name)
     
     sleep(1)
     print "Please check the parameters with parameter set file"

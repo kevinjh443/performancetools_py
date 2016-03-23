@@ -130,9 +130,10 @@ def homekey_exit_app():
     sleep(1)
 
 def double_homekey_exit_app():
-    print "exit home key"
+    print "double - exit home key"
     cmd_line1 = "adb -s " + device_id + " shell input keyevent 3"#home key
     os.popen(cmd_line1)
+    sleep(0.05)
     os.popen(cmd_line1)
     sleep(1)
 
@@ -152,18 +153,18 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         run_count_now = int(round(float(float(type_run_count) / complete_loop_time), 0))
     
     for i in range(run_count_now-1):
-        cmd_line = "adb -s " + device_id + " shell am start -W -n " + app
+        cmd_line = "adb -s " + device_id + " shell am start " + app
         print cmd_line
         htmlfile.write(cmd_line+" </br>")
         result = os.popen(cmd_line).readlines()
-        sleep(1)
+        sleep(2)
         homekey_exit_app()
     
-    cmd_line = "adb -s " + device_id + " shell am start -W -n " + app
+    cmd_line = "adb -s " + device_id + " shell am start " + app
     print cmd_line
     htmlfile.write(cmd_line+" </br>")
     result = os.popen(cmd_line).readlines()
-    sleep(1)
+    sleep(2)
     
     ####################moneky test##################
     cmd_line = "adb -s " + device_id + " shell monkey -p "+get_package_name(app)+" --throttle 100 -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(type_monkey_count)

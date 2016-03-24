@@ -160,11 +160,6 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         sleep(2)
         homekey_exit_app()
     
-    cmd_line = "adb -s " + device_id + " shell am start " + app
-    print cmd_line
-    htmlfile.write(cmd_line+" </br>")
-    result = os.popen(cmd_line).readlines()
-    sleep(2)
     
     ####################moneky test##################
     cmd_line = "adb -s " + device_id + " shell monkey -p "+get_package_name(app)+" --throttle 100 -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(type_monkey_count)
@@ -252,11 +247,11 @@ def Version():
 
 if __name__ == "__main__":
     high_type_run_count = 9
-    high_type_monkey_count = 2000
-    mid_type_run_count = 5
-    mid_type_monkey_count = 1000
+    high_type_monkey_count = 1000
+    mid_type_run_count = 6
+    mid_type_monkey_count = 600
     low_type_run_count = 3
-    low_type_monkey_count = 500
+    low_type_monkey_count = 400
     complete_loop_time=3
     app_info_file="stress_app_info.txt"
     reportFilename="stress_performance_auto_test_report.html"

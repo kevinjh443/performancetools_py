@@ -106,7 +106,9 @@ def check_iow():
     file = open(folder_file+"/monito_phone_status-top.txt", "r")
     pattern = re.compile(r'User (.*?)%, System (.*?)%, IOW (.*?)%, IRQ (.*?)%')
     try:
-        write_report_table_title()
+        iow_count=0
+        iow_total=0
+        #write_report_table_title()
         distri=[0,0,0,0,0,0,0,0,0,0,0]
         while True:
             line = file.readline()
@@ -117,9 +119,13 @@ def check_iow():
                     system =  match.group(2).strip()
                     iow =  match.group(3).strip()
                     irq =  match.group(4).strip()
-                    htmlfile.write("<tr> <td> </td> <td> "+user+"</td> <td> "+system+"</td> <td> "+iow+"</td> <td> </td> <td> "+irq+"</td> </tr>")
+                    #htmlfile.write("<tr> <td> </td> <td> "+user+"</td> <td> "+system+"</td> <td> "+iow+"</td> <td> </td> <td> "+irq+"</td> </tr>")
                     print "<tr> <td> </td> <td> "+user+"</td> <td> "+system+"</td> <td> "+iow+"</td> <td> </td> <td> "+irq+"</td> </tr>"
                     iow_num = int(iow)
+                    if iow_num >= 100 or iow_num < 0:
+                        iow_num=0
+                    iow_count += 1
+                    iow_total += iow_num
                     if iow_num == 0 or iow_num >= 100:
                         temp = distri[0]
                         temp += 1
@@ -167,14 +173,17 @@ def check_iow():
             else:
                 break
     finally:
-        write_report_table_end()
-        htmlfile.write("<table><tr> <td> 0 or > 100 </td> <td> 1<=x<10 </td> <td> 10<=x<20 </td><td> 20<=x<30 </td><td> 30<=x<40 </td><td> 40<=x<50 </td><td> 50<=x<60 </td><td> 60<=x<70 </td><td> 70<=x<80 </td><td> 80<=x<90 </td><td> 90<=x<100 </td></tr>")
-        htmlfile.write("<tr>")
+        #write_report_table_end()
+        htmlfile.write("<table><tr> <td>IOW% Level</td> <td> 0 or > 100 </td> <td> 1<=x<10 </td> <td> 10<=x<20 </td><td> 20<=x<30 </td><td> 30<=x<40 </td><td> 40<=x<50 </td><td> 50<=x<60 </td><td> 60<=x<70 </td><td> 70<=x<80 </td><td> 80<=x<90 </td><td> 90<=x<100 </td></tr>")
+        htmlfile.write("<tr> <td>Times</td>")
         for temp in distri:
             htmlfile.write("<td> "+str(temp)+" </td>")
         htmlfile.write("</tr></table>")
+        htmlfile.write("AVG IOW% = "+str(float(iow_total)/iow_count)+"</br></br>--</br>Best Regards - jianhua.he@tcl</br></br>")
         file.close()
 
+def check_running_time():
+    print "check running time"
 #####################3, real do things##################
 
 ####################usage############################
@@ -197,11 +206,12 @@ def Version():
 if __name__ == "__main__":
     folder_file="idol4"
     reportFilename="stress_performance_report.html"
+    folder_file_compare=[]
     
     print "---------device list----------"
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hvi:o:', ['input=','output='])
+        opts, args = getopt.getopt(sys.argv[1:], 'hvi:o:', ['input=','output=','c1=','c2=','c3=','c4=','c5=','c6=','c7=','c8='])
     except getopt.GetoptError, err:
         print str(err)
         Usage()
@@ -217,6 +227,30 @@ if __name__ == "__main__":
         elif opt in ('-i', '--input'):
             folder_file = arg
             print folder_file
+        elif opt in ('--c1'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c2'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c3'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c4'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c5'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c6'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c7'):
+            folder_file_compare.append(arg)
+            print arg
+        elif opt in ('--c8'):
+            folder_file_compare.append(arg)
+            print arg
         elif opt in ('-o', '--output'):
             reportFilename=arg
             print reportFilename

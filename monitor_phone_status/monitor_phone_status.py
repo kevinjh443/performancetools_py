@@ -132,7 +132,7 @@ def check_phone_status(result_file_name, actionid):
     sleep(1)
     print "Please check the parameters with parameter set file"
     if isWindowsSystem():
-        os.system("notepad "+result_file_name)
+        os.system("notepad "+result_file_name+" &")
     else:
         os.system("gedit "+result_file_name+" &")
     
@@ -175,13 +175,15 @@ def monitor_phone_status():
         
 
 def record_monitor_data_to_file():
-    os.system("adb -s "+ device_id +" shell top -n 2 -d 2 -m 10 -t >> monito_phone_status-top.txt")
+    os.system("adb -s "+ device_id +" shell top -n 1 -m 10 -t >> monito_phone_status-top.txt")
+    sleep(monitor_time_interval)
     os.system("adb -s "+ device_id +" shell vmstat >> monito_phone_status-vmstat.txt")
-    os.system("adb -s "+ device_id +" shell dumpsys cpuinfo >> monito_phone_status-cpuinfo.txt")
-    os.system("adb -s "+ device_id +" shell dumpsys meminfo >> monito_phone_status-meminfo.txt")
+    sleep(monitor_time_interval)
+    #os.system("adb -s "+ device_id +" shell dumpsys cpuinfo >> monito_phone_status-cpuinfo.txt")
+    #os.system("adb -s "+ device_id +" shell dumpsys meminfo >> monito_phone_status-meminfo.txt")
     print "monitor phone status ing....."
     print time.strftime('%Y-%m-%d %H:%M:%S')
-    sleep(monitor_time_interval)
+    #sleep(monitor_time_interval)
     
 
 def record_date_monitor_file():
@@ -233,7 +235,7 @@ def Action(action_id):
 
 if __name__ == "__main__":
     action_print_all=100
-    monitor_time_interval=5
+    monitor_time_interval=3
     
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hvat', ['--action=','--interval='])

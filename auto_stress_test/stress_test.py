@@ -295,7 +295,7 @@ def Usage():
     print '-i, --input: (default:stress_app_info.txt) input an input txt file, the app information from file; if -i /sdcard/Apps.txt will auto pull from device'
     print '-o, --output: (default:stress_performance_auto_test_report.html) one html file report the stress test detail information'
     print '--high: like --high="9 2000" (default:9 2000) mean high type app will launch 9 times and the monkey will run 2000 times '
-    print '--mid: like --mid="9 2000" (default:5 1000) mean mid type app will launch 9 times and the monkey will run 2000 times '
+    print '--mid: like --mid="9 2000" (default:6 1000) mean mid type app will launch 9 times and the monkey will run 2000 times '
     print '--low: like --low="9 2000" (default:3 500) mean low type app will launch 9 times and the monkey will run 2000 times '
     print '--loop: like --loop=3 (default:3) mean all the high mid low app will loop 3 times complete all the test '
     print '-------any thing can contacts author jianhua.he@tcl.com - Ext.66051'

@@ -223,7 +223,7 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
     for i in range(run_count_now-1):
         
         if check_if_need_stress_degree_update():
-            sleep(4);
+            sleep(3);
         
         thread_start = ThreadStartApp(app, device_id)
         start_time = time.time()
@@ -250,13 +250,15 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
     ####################moneky test##################
     need_update_stress_degree = check_if_need_stress_degree_update()
     if need_update_stress_degree:
-        sleep(3)
+        sleep(2)
     
     thread_monkey = ThreadRunningMonkey(get_package_name(app), device_id, type_monkey_count, need_update_stress_degree)
     monkey_start_time = time.time()
     thread_monkey.start()
     temp_timeout = int(round(float(float(type_monkey_count) / 100), 0))
     temp_timeout = temp_timeout * 6
+    if need_update_stress_degree:
+        temp_timeout = temp_timeout * 2
     print "\n set monkey timeout : "+str(temp_timeout)
     thread_monkey.join(temp_timeout)
     monkey_now_time = time.time()

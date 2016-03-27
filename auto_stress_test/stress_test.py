@@ -245,7 +245,7 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         thread_start = ThreadStartApp(app, device_id)
         start_time = time.time()
         thread_start.start()
-        thread_start.join(7)
+        thread_start.join(10)
         now_time = time.time()
         
         now_time = now_time - start_time
@@ -253,7 +253,7 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         
         if now_time < 0:
             now_time = 0
-        elif now_time >= 5 :
+        elif now_time >= 8 :
             print "time out here! = ["+str(now_time)+" sec]"
             
         htmlfile.write("["+str(now_time)+" sec]"+" </br>")
@@ -273,7 +273,7 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
     monkey_start_time = time.time()
     thread_monkey.start()
     temp_timeout = int(round(float(float(type_monkey_count) / 100), 0))
-    temp_timeout = temp_timeout * 6
+    temp_timeout = temp_timeout * 10
     if need_update_stress_degree:
         temp_timeout = temp_timeout * 2
     print "\n set monkey timeout : "+str(temp_timeout)

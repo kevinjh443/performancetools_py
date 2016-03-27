@@ -10,6 +10,7 @@ import time
 from subprocess import Popen, PIPE, call
 from time import sleep
 import getopt
+import threading
 
 #######################1, choice device#################
 def select_device():
@@ -142,6 +143,39 @@ def get_package_name(app):
     pakname = appinfo[0].strip()
     return pakname
 
+
+class ThreadStartApp(threading.Thread):
+    def __init__(self, app, device_id):
+        threading.Thread.__init__(self)
+        self.app = app
+        self.device_id = device_id
+    
+    def run(self):
+        cmd_line = "adb -s " + self.device_id + " shell am start -W -n " + self.app
+        print cmd_line
+        htmlfile.write(cmd_line+" </br>")
+        result = os.popen(cmd_line).readlines()
+        for line in result:
+            print line
+        sleep(1)
+        homekey_exit_app()
+        
+class ThreadRunningMonkey(threading.Thread):
+    def __init__(self, packagename, device_id, type_monkey_count):
+        threading.Thread.__init__(self)
+        self.packagename = packagename
+        self.device_id = device_id
+        self.type_monkey_count = type_monkey_count
+          
+    def run(self):
+        cmd_line = "adb -s " + self.device_id + " shell monkey -p "+ self.packagename +" --throttle 100 -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(self.type_monkey_count)
+        print cmd_line
+        htmlfile.write(cmd_line+" </br>")
+        result = os.popen(cmd_line).readlines()
+        sleep(1)
+        print " monke done!"
+        double_homekey_exit_app()
+    
 def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop):
     app_type = app_info.get(app);
     app_type = list(app_type)
@@ -153,23 +187,52 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         run_count_now = int(round(float(float(type_run_count) / complete_loop_time), 0))
     
     for i in range(run_count_now-1):
-        cmd_line = "adb -s " + device_id + " shell am start " + app
-        print cmd_line
-        htmlfile.write(cmd_line+" </br>")
-        result = os.popen(cmd_line).readlines()
-        sleep(2)
-        homekey_exit_app()
+        thread_start = ThreadStartApp(app, device_id)
+        start_time = time.time()
+        thread_start.start()
+        thread_start.join(7)
+        now_time = time.time()
+        
+        now_time = now_time - start_time
+        now_time = now_time - 2
+        
+        if now_time < 0:
+            now_time = 0
+        elif now_time >= 5 :
+            print "time out here! = ["+str(now_time)+" sec]"
+            
+        htmlfile.write("["+str(now_time)+" sec]"+" </br>")
+        print "["+str(now_time)+" sec]"+" </br>"
+        
+        if thread_start.is_alive():
+            print "thread_start still alive, need wait exit!"
+            double_homekey_exit_app()
     
     
     ####################moneky test##################
-    cmd_line = "adb -s " + device_id + " shell monkey -p "+get_package_name(app)+" --throttle 100 -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(type_monkey_count)
-    print cmd_line
-    htmlfile.write(cmd_line+" </br>")
-    result = os.popen(cmd_line).readlines()
-    sleep(1)
-    print " monke done!"
-    double_homekey_exit_app()
-    #sleep(1)
+    thread_monkey = ThreadRunningMonkey(get_package_name(app), device_id, type_monkey_count)
+    monkey_start_time = time.time()
+    thread_monkey.start()
+    temp_timeout = int(round(float(float(type_monkey_count) / 100), 0))
+    temp_timeout = temp_timeout * 6
+    print "\n set monkey timeout : "+str(temp_timeout)
+    thread_monkey.join(temp_timeout)
+    monkey_now_time = time.time()
+    
+    monkey_now_time = monkey_now_time - monkey_start_time
+    monkey_time = monkey_now_time - 2.05
+    
+    if monkey_now_time >= temp_timeout:
+        print "monkey time out here! = [monkey "+str(monkey_now_time)+" sec]"
+    elif monkey_time < 0:
+        monkey_time = 0
+    
+    htmlfile.write("[monkey "+str(monkey_time)+" sec]"+" </br>")
+    print "[monkey "+str(monkey_time)+" sec]"+" </br>"
+    
+    if thread_monkey.is_alive():
+        print "thread_monkey still alive, need wait exit!"
+        double_homekey_exit_app()
     
     #############update the test times###############
     app_type[1] = run_count_now + app_type[1]

@@ -12,6 +12,10 @@ from time import sleep
 import getopt
 import threading
 
+###########global########################
+global stress_degree_update_factor
+global running_times
+
 #######################1, choice device#################
 def select_device():
     device_list = get_device_list()
@@ -105,6 +109,8 @@ def initHtml(htmlfile):
 #####################3, real do things##################
 
 def get_apps_info(app_info_file):
+    global stress_degree_update_factor
+    global running_times
     app_info_temp={}
     
     pattern = re.compile(r': (.*?) : (\d.*?)')
@@ -116,6 +122,14 @@ def get_apps_info(app_info_file):
         if match:
             app_name = match.group(1).strip()
             app_type = match.group(2).strip()
+            
+            if app_type == "3":
+                running_times += high_type_run_count
+            elif app_type == "2":
+                running_times += mid_type_run_count
+            elif app_type == "1":
+                running_times += low_type_run_count
+            
             print app_type+" : "+app_name
             app_type = list(app_type)
             app_type.append(0)#start count
@@ -161,21 +175,41 @@ class ThreadStartApp(threading.Thread):
         homekey_exit_app()
         
 class ThreadRunningMonkey(threading.Thread):
-    def __init__(self, packagename, device_id, type_monkey_count):
+    def __init__(self, packagename, device_id, type_monkey_count, need_update_stress_degree):
         threading.Thread.__init__(self)
         self.packagename = packagename
         self.device_id = device_id
         self.type_monkey_count = type_monkey_count
+        self.need_update_stress_degree = need_update_stress_degree
           
     def run(self):
-        cmd_line = "adb -s " + self.device_id + " shell monkey -p "+ self.packagename +" --throttle 100 -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(self.type_monkey_count)
+        throttle = 100
+        if self.need_update_stress_degree:
+            throttle = 200
+        
+        cmd_line = "adb -s " + self.device_id + " shell monkey -p "+ self.packagename +" --throttle "+str(throttle)+" -s 10 -v --ignore-crashes --ignore-timeouts --ignore-security-exceptions "+str(self.type_monkey_count)
         print cmd_line
         htmlfile.write(cmd_line+" </br>")
         result = os.popen(cmd_line).readlines()
         sleep(1)
         print " monke done!"
         double_homekey_exit_app()
+
+def check_if_need_stress_degree_update():#have rest long time, the lower stress
+    global stress_degree_update_factor
+    global running_times
     
+    need_stress_degree_update = False
+    stress_degree_update_factor += 1
+    if app_num >= 20 and running_times >= 30:
+        up_limit = running_times * 0.7
+        down_limit = running_times * 0.5# 0.7-0.5 = 20% need stress update
+        print "down = "+str(down_limit)+"; up = "+str(up_limit)
+        if stress_degree_update_factor <= up_limit and stress_degree_update_factor >= down_limit:
+            need_stress_degree_update = True
+    print "this time if need update stress degree : "+str(need_stress_degree_update)
+    return need_stress_degree_update
+
 def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop):
     app_type = app_info.get(app);
     app_type = list(app_type)
@@ -187,6 +221,10 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
         run_count_now = int(round(float(float(type_run_count) / complete_loop_time), 0))
     
     for i in range(run_count_now-1):
+        
+        if check_if_need_stress_degree_update():
+            sleep(4);
+        
         thread_start = ThreadStartApp(app, device_id)
         start_time = time.time()
         thread_start.start()
@@ -210,7 +248,11 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
     
     
     ####################moneky test##################
-    thread_monkey = ThreadRunningMonkey(get_package_name(app), device_id, type_monkey_count)
+    need_update_stress_degree = check_if_need_stress_degree_update()
+    if need_update_stress_degree:
+        sleep(3)
+    
+    thread_monkey = ThreadRunningMonkey(get_package_name(app), device_id, type_monkey_count, need_update_stress_degree)
     monkey_start_time = time.time()
     thread_monkey.start()
     temp_timeout = int(round(float(float(type_monkey_count) / 100), 0))
@@ -316,6 +358,11 @@ if __name__ == "__main__":
     low_type_run_count = 3
     low_type_monkey_count = 400
     complete_loop_time=3
+    
+    global stress_degree_update_factor
+    global running_times
+    stress_degree_update_factor = 0
+    running_times = 0
     app_info_file="stress_app_info.txt"
     reportFilename="stress_performance_auto_test_report.html"
     
@@ -392,7 +439,7 @@ if __name__ == "__main__":
     ############read app info################
     app_info = get_apps_info(app_info_file)
     app_num = len(app_info)
-    print "It expected to "+str(app_num)+" minutes to complete....."
+    print "It expected to "+str(running_times / 3)+" minutes to complete....."
     x = input("Press 1 key to continue:")
     ###########run those app############
     start_time = time.time()

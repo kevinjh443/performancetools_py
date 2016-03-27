@@ -174,7 +174,7 @@ def check_iow():
                 break
     finally:
         #write_report_table_end()
-        htmlfile.write("<table><tr> <td>IOW% Level</td> <td> 0 or > 100 </td> <td> 1<=x<10 </td> <td> 10<=x<20 </td><td> 20<=x<30 </td><td> 30<=x<40 </td><td> 40<=x<50 </td><td> 50<=x<60 </td><td> 60<=x<70 </td><td> 70<=x<80 </td><td> 80<=x<90 </td><td> 90<=x<100 </td></tr>")
+        htmlfile.write("</br>TOP IOW</br> <table><tr> <td>IOW% Level</td> <td> 0 or > 100 </td> <td> 1<=x<10 </td> <td> 10<=x<20 </td><td> 20<=x<30 </td><td> 30<=x<40 </td><td> 40<=x<50 </td><td> 50<=x<60 </td><td> 60<=x<70 </td><td> 70<=x<80 </td><td> 80<=x<90 </td><td> 90<=x<100 </td></tr>")
         htmlfile.write("<tr> <td>Times</td>")
         for temp in distri:
             htmlfile.write("<td> "+str(temp)+" </td>")
@@ -184,6 +184,46 @@ def check_iow():
 
 def check_running_time():
     print "check running time"
+    
+def check_vmstat():
+    print "check vmstat"
+    file = open(folder_file+"/monito_phone_status-vmstat.txt", "r")
+    pattern_vmstat = re.compile(r'(\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?) (\d+.*?)')
+    vmstat = []
+    try:
+        while True:
+            line = file.readline()
+            if line:
+                match = re.search(pattern_vmstat, line)
+                if match:
+                    vmstat_item=[]
+                    for i in range(1,17):
+                        vmstat_item.append(int(match.group(i).strip()))
+                    vmstat.append(vmstat_item)
+            else:
+                break
+    finally:
+        file.close()
+    
+    print vmstat
+    html = "</br>VMSTAT</br>"
+    html += "<table>"
+    html += "<tr>"
+    html += "<td> Process r </td> <td> Process b </td> <td> mem swpd </td> <td> mem free </td> <td> mem buff </td> <td> mem cache </td> <td> swap si </td> <td> swap so </td> <td> bi </td><td> bo </td><td> sys in </td><td> sys cs </td><td> cpu us </td><td> cpu sy </td><td> cpu id </td><td> cpu wa </td>"
+    html += "</tr>"
+    
+    for i in vmstat:
+        temp = list(i)
+        html += "<tr>"
+        for j in temp:
+            html += "<td> "+str(j)+" </td>"
+        html += "</tr>"
+    
+    html += "</table>"
+    html += "</br></br></br></br>"
+    
+    htmlfile.write(html)
+    
 #####################3, real do things##################
 
 ####################usage############################
@@ -265,6 +305,8 @@ if __name__ == "__main__":
     check_phone_status()
     
     check_iow()
+    
+    check_vmstat()
     
     htmlfile.write("</body> </html>")
     htmlfile.close()

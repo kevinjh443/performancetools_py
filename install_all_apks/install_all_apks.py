@@ -57,6 +57,7 @@ def isWindowsSystem():
 if __name__ == "__main__":
     
     device_id = select_device()
+    install_all_apks_failure_report=device_id+"_install_all_apks_failure.txt"
     
     return_value=[]
     if isWindowsSystem():
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     else:
         return_value = os.popen("ls ./*.apk").readlines()
     
-    os.system("echo "+device_id+" > install_all_apks_failure.txt")
+    os.system("echo "+device_id+" > "+install_all_apks_failure_report)
     fuilure_count=0
     install_count=0
     for apkname in return_value:
@@ -77,11 +78,11 @@ if __name__ == "__main__":
             if "Failure" in line:
                 fuilure_count += 1
                 print "Failure :"+apkname
-                os.system("echo "+apkname+" : "+line+" >> install_all_apks_failure.txt")
+                os.system("echo "+apkname+" : "+line+" >> "+install_all_apks_failure_report)
     print "Total Failure count = "+str(fuilure_count)+", neet to uninstall first!!!"
     if isWindowsSystem():
-        os.system("notepad install_all_apks_failure.txt")
+        os.system("notepad "+install_all_apks_failure_report)
     else:
-        os.system("gedit install_all_apks_failure.txt")
+        os.system("gedit "+install_all_apks_failure_report)
     print "DONE!!!"
     

@@ -13,10 +13,14 @@ import smtplib
 import glob
 import email
 from commands import *
+import getopt
 
 global record_be_time_flag
 global begain_time
 global end_time
+global log_begain_time
+global log_end_time
+global have_log_time_flag
 
 def record_be_time(line):
 	match = re.search(pattern_time, line)
@@ -44,8 +48,82 @@ def record_be_time(line):
 			begain_time=log_time
 		elif (float(log_time) > float(end_time)):
 			end_time=log_time
+			
+def record_be_time_have_log_time(line):
+	global log_begain_time
+	global log_end_time
+	match = re.search(pattern_time, line)
+	if match:
+		l_time = match.group().strip()
+		l_time = l_time[:-4]
+		print l_time
+		log_time = time.mktime(time.strptime(l_time,'%m-%d %H:%M:%S'))
+		#print log_time
+		global record_be_time_flag
+		global begain_time
+		global end_time
+ 		
+ 		if float(log_time) < float(log_begain_time):
+ 			return False
+ 		elif float(log_time) > float(log_end_time):
+ 			return False
+ 		else:
+ 			if record_be_time_flag == 0:
+				record_be_time_flag += 1
+				begain_time=log_time
+				end_time=log_time
+			if (float(log_time) < float(begain_time)):
+				begain_time=log_time
+			elif (float(log_time) > float(end_time)):
+				end_time=log_time
+			return True
+
+####################usage############################
+def Usage():
+    print 'process_kill_count_launch_time_avg_M.py usage:'
+    print '-h,--help: print help message.'
+    print '-v, --version: print script version'
+    print '--begain,the begain test time like : --begain="01-01 02:32:32".'
+    print '--end,the end test time like : --end="01-01 02:32:32".'
+    print '-------any thing can contacts author jianhua.he@tcl.com - Ext.66051'
+
+def Version():
+    print 'stress_tesst.py 1.0.0.0.1'
+    
+####################usage############################
 
 if __name__ == "__main__":
+	global log_begain_time
+	global log_end_time
+	global have_log_time_flag
+	have_log_time_flag=0
+	
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hvi:o:', ['input=','output=','begain=','end='])
+	except getopt.GetoptError, err:
+		print str(err)
+		Usage()
+		sys.exit(2)
+		
+	for opt, arg in opts:
+		if opt in ('-h', '--help'):
+			Usage()
+			sys.exit(1)
+		elif opt in ('-v', '--version'):
+			Version()
+			sys.exit(0)
+		elif opt in ('--begain'):
+			log_begain_time = time.mktime(time.strptime(arg,'%m-%d %H:%M:%S'))
+			print arg+" = "+str(log_begain_time)
+			have_log_time_flag += 1
+		elif opt in ('--end'):
+			log_end_time = time.mktime(time.strptime(arg,'%m-%d %H:%M:%S'))
+			print arg+" = "+str(log_end_time)
+			have_log_time_flag += 1
+		else:
+			print 'unhandled option'
+			sys.exit(3)
+			
 	global record_be_time_flag
 	global begain_time
 	global end_time
@@ -95,46 +173,79 @@ if __name__ == "__main__":
 		if tmp_lines:
 			for line in tmp_lines:
 				if ("Start proc" in line) and ("ActivityManager" in line):
-					record_be_time(line)
-					print line
-					name1=line.split(":")[4]
-					name2=name1.split("/")[0]
-					name3=line.split("/")[1]
-	                                name4=name3.split(" ")[-1]
-					if name2 == name4:
-						print name2
-						if name2 == "system":
-							print "kill"
-						kill_relaunch_names.append(name4)
-						if "for activity" in line:
+					if have_log_time_flag != 2:
+						record_be_time(line)
+						print line
+						name1=line.split(":")[4]
+						name2=name1.split("/")[0]
+						name3=line.split("/")[1]
+		                                name4=name3.split(" ")[-1]
+						if name2 == name4:
+							print name2
 							if name2 == "system":
-								print "activity"
-							kill_activity.append(name4)
+								print "kill"
+							kill_relaunch_names.append(name4)
+							if "for activity" in line:
+								if name2 == "system":
+									print "activity"
+								kill_activity.append(name4)
+					elif have_log_time_flag == 2 and record_be_time_have_log_time(line):
+						print "have log time:"+line
+						name1=line.split(":")[4]
+						name2=name1.split("/")[0]
+						name3=line.split("/")[1]
+		                                name4=name3.split(" ")[-1]
+						if name2 == name4:
+							print name2
+							if name2 == "system":
+								print "kill"
+							kill_relaunch_names.append(name4)
+							if "for activity" in line:
+								if name2 == "system":
+									print "activity"
+								kill_activity.append(name4)
 	
 		print "++++++++++++++++++++ start to get all start count+++++++++++++++++++++++++++++++"
 		if tmp_lines:
 			for line in tmp_lines:
 				if ("ActivityManager" in line) and ("START u0" in line):
-					record_be_time(line)
-					print line
-					name1=line.split("/")[-2].strip()
-					name2=name1.split("=")[-1].strip()
-					print name2
-					if name2 == "system":
-						print "cache"
-					all_names.append(name2)
+					if have_log_time_flag != 2:
+						record_be_time(line)
+						print line
+						name1=line.split("/")[-2].strip()
+						name2=name1.split("=")[-1].strip()
+						print name2
+						if name2 == "system":
+							print "cache"
+						all_names.append(name2)
+					elif have_log_time_flag == 2 and record_be_time_have_log_time(line):
+						print "have log time:"+line
+						name1=line.split("/")[-2].strip()
+						name2=name1.split("=")[-1].strip()
+						print name2
+						if name2 == "system":
+							print "cache"
+						all_names.append(name2)
 	
 		print "++++++++++++++++++++++++++++++++++ start to get service kill count +++++++++++++++++++++++++++++++++++++++++++++++++++++"
 		if tmp_lines:
 			for line in tmp_lines:
 				if ("ActivityManager" in line) and ("Killing" in line):
-					record_be_time(line)
-					print line
-					line1=re.match('(\d\d-\d\d\s+\d\d:\d\d:\d\d\.\d+\s+\d+\s+\+\d+s+\w\s)ActivityManager: Killing\s\d+\w+',line)
-					if line1:
-						name1=line1.split("/")[-2].strip().split(":")[-1]
-						print name1
-						service_names.append(name1)
+					if have_log_time_flag != 2:
+						record_be_time(line)
+						print line
+						line1=re.match('(\d\d-\d\d\s+\d\d:\d\d:\d\d\.\d+\s+\d+\s+\+\d+s+\w\s)ActivityManager: Killing\s\d+\w+',line)
+						if line1:
+							name1=line1.split("/")[-2].strip().split(":")[-1]
+							print name1
+							service_names.append(name1)
+					elif have_log_time_flag == 2 and record_be_time_have_log_time(line):
+						print "have log time:"+line
+						line1=re.match('(\d\d-\d\d\s+\d\d:\d\d:\d\d\.\d+\s+\d+\s+\+\d+s+\w\s)ActivityManager: Killing\s\d+\w+',line)
+						if line1:
+							name1=line1.split("/")[-2].strip().split(":")[-1]
+							print name1
+							service_names.append(name1)
 	
 	
 		#sort kill_relaunch_names
@@ -282,16 +393,24 @@ if __name__ == "__main__":
 	    	
 	    	time_begain_temp=time.strftime('%m-%d %H:%M:%S',time.localtime(begain_time))
 	    	time_end_temp=time.strftime('%m-%d %H:%M:%S',time.localtime(end_time))
-	    	print "+++++++++++++++++++log time gap+++++++++++++++++++"
-	    	print "the first action begain at : "+time_begain_temp
-	    	print "the last action end at : "+time_end_temp
-	    	print "+++++++++++++++++++log time gap+++++++++++++++++++"
-	    	html += "begain time = "+str(begain_time)+" : "+time_begain_temp +"</br>"
-	    	html += 'end time = '+str(end_time)+' : '+ time_end_temp+'</br>'
-	    	
-# 	    	tup_birth = time.localtime(end_time - begain_time)
-# 	    	format_birth = time.strftime("%m-%d %H:%M:%S",tup_birth)
-# 	    	html += 'Log time gap = '+format_birth+' </br>'
+	    	if have_log_time_flag == 2:
+	    		print "+++++++++++++++++++TEST BEGAIN AT -GAP+++++++++++++++++++"
+		    	print "the TEST Begain at : "+time.strftime('%m-%d %H:%M:%S',time.localtime(log_begain_time))
+		    	print "the TEST End at : "+time.strftime('%m-%d %H:%M:%S',time.localtime(log_end_time))
+		    	print "+++++++++++++++++++TEST END AT -GAP+++++++++++++++++++"
+		    	html +=  "</br>+++++++++++++++++++TEST BEGAIN AT -GAP+++++++++++++++++++"
+		    	html +=  "</br>the TEST Begain at : "+time.strftime('%m-%d %H:%M:%S',time.localtime(log_begain_time))
+		    	html +=  "</br>the TEST End at : "+time.strftime('%m-%d %H:%M:%S',time.localtime(log_end_time))
+		    	html +=  "</br>+++++++++++++++++++TEST END AT -GAP+++++++++++++++++++"
+	    	print "+++++++++++++++++++First Item at -GAP+++++++++++++++++++"
+	    	print "the first action item begain at : "+time_begain_temp
+	    	print "the last action item end at : "+time_end_temp
+	    	print "+++++++++++++++++++Last Item at -GAP+++++++++++++++++++"
+	    	html += "</br>+++++++++++++++++++First Item at -GAP+++++++++++++++++++"
+	    	html +=  "</br>the first action item begain at : "+time_begain_temp
+	    	html +=  "</br>the last action item end at : "+time_end_temp
+	    	html += "</br>+++++++++++++++++++Last Item at -GAP+++++++++++++++++++"
+
 	    	html += '<p><font color="gray" size="2px">'
 	    	html += 'Best Regards,<br />'
 	    	html += 'ADDR: No.232, Tower C, Liangjing Rd, Zhangjiang High-Teck Park, Pudong Shanghai 201203. P. R. China'

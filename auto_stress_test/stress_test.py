@@ -201,6 +201,7 @@ def check_if_need_stress_degree_update():#have rest long time, the lower stress
     
     need_stress_degree_update = False
     stress_degree_update_factor += 1
+    print "*****speed****"+str(stress_degree_update_factor)+"/"+str(running_times)+"*******"
     if app_num >= 20 and running_times >= 30:
         up_limit = running_times * 0.7
         down_limit = running_times * 0.5# 0.7-0.5 = 20% need stress update
@@ -209,6 +210,18 @@ def check_if_need_stress_degree_update():#have rest long time, the lower stress
             need_stress_degree_update = True
     print "this time if need update stress degree : "+str(need_stress_degree_update)
     return need_stress_degree_update
+
+def check_adb_status():
+    check_adb_wait_time = time.time()
+    print "check adb status: if waiting here long time, adb have issue, please plug USB again now."
+    os.system("adb wait-for-device ")
+    check_adb_wait_time = time.time() - check_adb_wait_time
+    if check_adb_wait_time >= 5:
+        htmlfile.write("wait adb long time : [wait-for-device "+str(check_adb_wait_time)+"] </br>")
+        print "record : wait adb long time : [wait-for-device "+str(check_adb_wait_time)+"]"
+    else:
+        print "adb status is OK"
+    
 
 def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop):
     app_type = app_info.get(app);
@@ -220,6 +233,10 @@ def type_diff_run(app, app_info, type_run_count, type_monkey_count, is_last_loop
     else:
         run_count_now = int(round(float(float(type_run_count) / complete_loop_time), 0))
     
+    ###################check adb status###############
+    check_adb_status()
+    
+    ###################launch app#####################
     for i in range(run_count_now-1):
         
         if check_if_need_stress_degree_update():

@@ -143,6 +143,19 @@ def check_phone_status(result_file_name, actionid):
         print "n return"
         sys.exit(0)
 
+def check_adb_status():
+    check_adb_wait_time = time.time()
+    print "check adb status: if waiting here long time, adb have issue, please plug USB again now."
+    os.system("adb wait-for-device ")
+    check_adb_wait_time = time.time() - check_adb_wait_time
+    if check_adb_wait_time >= 5:
+        os.system("adb -s "+device_id+" shell date >> adb_status_waiting_long_time_record.txt")
+        os.system("echo wait adb long time : [wait-for-device "+str(check_adb_wait_time)+"] >> adb_status_waiting_long_time_record.txt")
+        print "record : wait adb long time : [wait-for-device "+str(check_adb_wait_time)+"]"
+    else:
+        print "adb status is OK"
+    
+
 def monitor_phone_status():
     Action(5)
     print "Please run the stress_test.py NOW!  and then please back to here run this script continue!!!"
@@ -151,11 +164,13 @@ def monitor_phone_status():
         print "monitor begain"
         create_monitor_file()
         os.system("echo 1 > stress_test_monitor_flag")
+        os.system("echo adb_status_waiting_long_time_record > adb_status_waiting_long_time_record.txt")
         record_date_monitor_file()
         flag=1
         while (flag == 1):
             try:
                 record_monitor_data_to_file()
+                check_adb_status()
                 
                 f = open("stress_test_monitor_flag",'r')
                 flag = int(f.readline().strip())

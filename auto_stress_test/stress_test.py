@@ -442,16 +442,16 @@ if __name__ == "__main__":
     print "It expected to "+str(running_times / 3)+" minutes to complete....."
     x = input("Press 1 key to continue:")
     ###########run those app############
-    start_time = time.time()
+    test_start_time = time.time()
     for j in range(complete_loop_time):
         if j == (complete_loop_time-1):
             test_stress(app_info, True)
         else:
             test_stress(app_info, False)
     
-    end_time = time.time()
+    test_end_time = time.time()
     print "------------------------------"
-    htmlfile.write(" </br></br></br> total run time = "+str(end_time-start_time)+" sec")
+    htmlfile.write(" </br></br></br> total run time = "+str(test_end_time-test_start_time)+" sec")
     print app_info
     write_report(app_info)
     htmlfile.write("</body> </html>")

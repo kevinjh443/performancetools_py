@@ -66,11 +66,11 @@ def root_device():
         os.system("adb -s " + device_id + " shell setprop ro.allow.mock.location 1 ")
         os.system("adb -s " + device_id + " shell setprop persist.sys.usb.config mtp,adb ")
         print "if error: device not found, please plug USB again now."
-        os.system("adb wait-for-device ")
+        os.system("adb -s "+device_id+" wait-for-device ")
         sleep(1.5)
         os.system("adb -s " + device_id + " shell /system/bin/setenforce 0 ")
-        os.system("adb root ")
-        os.system("adb remount ")
+        os.system("adb -s "+device_id+" root ")
+        os.system("adb -s "+device_id+" remount ")
         os.system("adb -s " + device_id + " shell setenforce 0 ")
         os.system("adb -s " + device_id + " shell input keyevent 3 ")
 
@@ -146,7 +146,7 @@ def check_phone_status(result_file_name, actionid):
 def check_adb_status():
     check_adb_wait_time = time.time()
     print "check adb status: if waiting here long time, adb have issue, please plug USB again now."
-    os.system("adb wait-for-device ")
+    os.system("adb -s "+device_id+" wait-for-device ")
     check_adb_wait_time = time.time() - check_adb_wait_time
     if check_adb_wait_time >= 5:
         os.system("adb -s "+device_id+" shell date >> adb_status_waiting_long_time_record.txt")

@@ -214,7 +214,7 @@ def check_if_need_stress_degree_update():#have rest long time, the lower stress
 def check_adb_status():
     check_adb_wait_time = time.time()
     print "check adb status: if waiting here long time, adb have issue, please plug USB again now."
-    os.system("adb wait-for-device ")
+    os.system("adb -s "+device_id+" wait-for-device ")
     check_adb_wait_time = time.time() - check_adb_wait_time
     if check_adb_wait_time >= 5:
         htmlfile.write("wait adb long time : [wait-for-device "+str(check_adb_wait_time)+"] </br>")
